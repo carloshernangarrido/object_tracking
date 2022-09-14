@@ -16,12 +16,6 @@ def template_match(roi, template, bbox_roi, bbox_template, frame, verbose: bool 
                                             (bbox_match[0] + bbox_template[2],
                                              bbox_match[1] + bbox_template[3]),
                                             (255, 0, 0), 1)
-        # matching_rect = cv2.rectangle(matching,
-        #                               (max_loc[0] - bbox_template[2] // 2, max_loc[1] - bbox_template[3] // 2),
-        #                               (max_loc[0] + bbox_template[2] // 2, max_loc[1] + bbox_template[3] // 2),
-        #                               (255, 0, 0), 1)
-        # cv2.imshow('matching', matching_rect)
-        # cv2.waitKey()
         cv2.imshow('frame matching', frame_matching_rect)
         cv2.waitKey()
         # TODO: Matching refining
