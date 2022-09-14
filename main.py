@@ -3,9 +3,9 @@ import sys
 import os
 import cv2
 import numpy as np
-
-from utils import template_match, frame_slice, bbox2rect
 import matplotlib.pyplot as plt
+
+from utils.object_tracking import template_match, frame_slice, bbox2rect
 
 
 flags = {'webcam': False,
@@ -16,12 +16,12 @@ flags = {'webcam': False,
 path = 'C:/TRABAJO/CONICET/videos/'
 filename = 'vid_2022-09-13_12-54-44.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
-start_time_ms = 0
-dump_filename = 'txy_dof1.dat'
+start_time_ms = 1000
+dump_filename = 'txy.dat'
 
 
 if __name__ == '__main__':
-    txy = []
+    txy, txy_refined = [], []
     full_filename = os.path.join(path, filename)
 
     # Read video
@@ -52,7 +52,8 @@ if __name__ == '__main__':
     bbox_roi = [0, 0, 0, 0]
     while bbox_roi[2] == 0 or bbox_roi[3] == 0:
         cv2.namedWindow('Select ROI, or press any key to forward', cv2.WINDOW_KEEPRATIO)
-        bbox_roi = list(cv2.selectROI('Select ROI, or press any key to forward', frame, False))  # [x, y, with, height]
+        # [x, y, with, height]
+        bbox_roi = list(cv2.selectROI('Select ROI, or press any key to forward', frame, False))
         # Read a new frame
         ok, frame = video.read()
         if not ok:
@@ -78,7 +79,7 @@ if __name__ == '__main__':
 
         # Template matching
         roi = frame_slice(frame, bbox_roi)
-        bbox = template_match(roi, template, bbox_roi, bbox_template, frame, verbose=False)
+        bbox, bbox_refined = template_match(roi, template, bbox_roi, bbox_template)
         # Update roi
         if flags['update_roi']:
             bbox_roi[0], bbox_roi[1] = bbox[0] - bbox_roi[2]//2 + bbox[2]//2, bbox[1] - bbox_roi[3]//2 + bbox[3]//2
@@ -92,6 +93,7 @@ if __name__ == '__main__':
         if t == 0:
             break
         txy.append([t, bbox[0], bbox[1]])
+        txy_refined.append([t, bbox_refined[0], bbox_refined[1]])
 
         # Draw bounding box for roi
         p1, p2 = bbox2rect(bbox_roi)
@@ -124,13 +126,17 @@ if __name__ == '__main__':
     cv2.destroyAllWindows()
 
     txy = np.array(txy)
+    txy_refined = np.array(txy_refined)
 
     # Save to disk
     with open(dump_filename, 'wb') as dump_file:
-        pickle.dump(txy, dump_file)
+        saving_list = [txy, txy_refined]
+        pickle.dump(saving_list, dump_file)
 
     plt.plot(txy[:, 0], txy[:, 1])
     plt.plot(txy[:, 0], txy[:, 2])
+    plt.plot(txy_refined[:, 0], txy_refined[:, 1])
+    plt.plot(txy_refined[:, 0], txy_refined[:, 2])
     plt.show()
     print(txy)
 
