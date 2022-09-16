@@ -7,7 +7,7 @@ from utils.signal_processing import plot_time_domain, plot_frequency_domain, plo
 flags = {'webcam': False,
          'update_roi': True,
          'auto_play': False,
-         'perform_object_tracking': None,
+         'perform_object_tracking': False,
          'perform_dsp': True}
 
 video_path = 'C:/TRABAJO/CONICET/videos/'
@@ -16,6 +16,7 @@ actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
 start_time_ms = 0
 ot_output_filename = 'txy.dat'
 
+# dsp_input_filenames = ['txy.dat']
 dsp_input_filenames = ['txy_dof1_ok.dat',
                        'txy_dof2_ok.dat']
 kalman_param = {'freq_of_interest': 1,
@@ -28,9 +29,10 @@ if __name__ == '__main__':
         # object_tracking
         video_full_filename = os.path.join(video_path, video_filename)
         txy, txy_refined = main_object_tracking(flags, video_full_filename, start_time_ms, actual_fps=actual_fps)
+        txy_smoothed = perform_kalman_filter(txy_refined, kalman_param)
         # Save to disk
         with open(ot_output_filename, 'wb') as dump_file:
-            saving_list = [txy, txy_refined]
+            saving_list = [txy, txy_refined, txy_smoothed]
             pickle.dump(saving_list, dump_file)
         if not flags['perform_dsp']:
             plot_time_domain(txy, txy_refined)
@@ -41,13 +43,10 @@ if __name__ == '__main__':
             figs = []
             with open(dsp_input_filename, 'rb') as load_file:
                 saving_list = pickle.load(load_file)
-                txy, txy_refined = saving_list[0], saving_list[1]
-
-            txy_smoothed = perform_kalman_filter(txy_refined, kalman_param)
+                txy, txy_refined, txy_smoothed = saving_list[0], saving_list[1], saving_list[2]
 
             plot_time_domain(txy, txy_refined, txy_smoothed=txy_smoothed,
                              title=f'time domain positions for {dsp_input_filename}')
-
             plot_frequency_domain(txy, txy_refined, txy_smoothed,
                                   title=f'frequency domain displacements {dsp_input_filename}')
             plot_emd(txy_smoothed, mask_freqs=dsp_param['emd_mask_freqs'], max_imfs=dsp_param['emd_max_imfs'],
