@@ -1,6 +1,7 @@
 cycler==0.11.0
 dcor==0.5.7
 emd==0.5.5
+filterpy==1.4.5
 fonttools==4.37.1
 importlib-metadata==4.12.0
 joblib==1.1.0
