@@ -8,7 +8,7 @@ def plot_time_domain(txy, txy_refined, txy_smoothed=None, title='time domain pos
     fig = plt.figure()
     plt.title(title)
     plt.xlabel('time (s)')
-    plt.ylabel('position (px)')
+    plt.ylabel('position')
     plt.plot(txy[:, 0], txy[:, 1], '--', label='x int px')
     plt.plot(txy[:, 0], txy[:, 2], '--', label='y int px')
     plt.plot(txy_refined[:, 0], txy_refined[:, 1], label='x sub px')

@@ -14,13 +14,13 @@ video_path = 'C:/TRABAJO/CONICET/videos/'
 video_filename = 'vid_2022-09-13_12-54-44.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
 start_time_ms = 0
-ot_output_filename = 'txy.dat'
+ot_output_filename = 'txy_dof2_m.dat'
 
 # dsp_input_filenames = ['txy.dat']
-dsp_input_filenames = ['txy_dof1_ok.dat',
-                       'txy_dof2_ok.dat']
-kalman_param = {'freq_of_interest': 1,
-                'measurement_error_std': 1}
+dsp_input_filenames = ['txy_dof1_m.dat',
+                       'txy_dof2_m.dat']
+kalman_param = {'freq_of_interest': 10,
+                'measurement_error_std': 0.00047*0.5}
 dsp_param = {'emd_mask_freqs': [7, 2.5],
              'emd_max_imfs': 3}
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':
             saving_list = [txy, txy_refined, txy_smoothed]
             pickle.dump(saving_list, dump_file)
         if not flags['perform_dsp']:
-            plot_time_domain(txy, txy_refined)
+            plot_time_domain(txy, txy_refined, txy_smoothed)
             plt.show()
 
     if flags['perform_dsp']:
