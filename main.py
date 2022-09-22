@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 from utils.object_tracking import main_object_tracking
 from utils.signal_processing import plot_time_domain, plot_frequency_domain, plot_emd, perform_kalman_filter
 
-flags = {'webcam': False,
+flags = {'webcam': True,
          'update_roi': True,
          'auto_play': False,
          'perform_object_tracking': False,
-         'perform_dsp': True}
+         'perform_polar_tracking': True,
+         'perform_dsp': False}
 
 video_path = 'C:/TRABAJO/CONICET/videos/'
 video_filename = 'vid_2022-09-13_12-54-44.mp4'
@@ -25,9 +26,10 @@ dsp_param = {'emd_mask_freqs': [7, 2.5],
              'emd_max_imfs': 3}
 
 if __name__ == '__main__':
+    video_full_filename = os.path.join(video_path, video_filename)
+
     if flags['perform_object_tracking']:
         # object_tracking
-        video_full_filename = os.path.join(video_path, video_filename)
         txy, txy_refined = main_object_tracking(flags, video_full_filename, start_time_ms, actual_fps=actual_fps)
         txy_smoothed = perform_kalman_filter(txy_refined, kalman_param)
         # Save to disk
@@ -52,7 +54,7 @@ if __name__ == '__main__':
             plot_emd(txy_smoothed, mask_freqs=dsp_param['emd_mask_freqs'], max_imfs=dsp_param['emd_max_imfs'],
                      title=f'empirical mode decomposition of positions for {dsp_input_filename}')
         plt.show()
-        a = 0
+        ...
 
 
 
