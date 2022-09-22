@@ -14,7 +14,7 @@ video_path = 'C:/TRABAJO/CONICET/videos/'
 video_filename = 'vid_2022-09-13_12-54-44.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
 start_time_ms = 0
-ot_output_filename = 'txy_dof2_m.dat'
+ot_output_filename = 'txy.dat'
 
 # dsp_input_filenames = ['txy.dat']
 dsp_input_filenames = ['txy_dof1_m.dat',
