@@ -1,14 +1,17 @@
 import os
 import pickle
+import warnings
+
 import matplotlib.pyplot as plt
 from utils.object_tracking import main_object_tracking
+from utils.multi_tracking import main_multi_tracking
 from utils.signal_processing import plot_time_domain, plot_frequency_domain, plot_emd, perform_kalman_filter
 
-flags = {'webcam': True,
+flags = {'webcam': False,
          'update_roi': True,
          'auto_play': False,
          'perform_object_tracking': False,
-         'perform_polar_tracking': True,
+         'perform_multi_tracking': 3,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi tracking
          'perform_dsp': False}
 
 video_path = 'C:/TRABAJO/CONICET/videos/'
@@ -39,6 +42,28 @@ if __name__ == '__main__':
         if not flags['perform_dsp']:
             plot_time_domain(txy, txy_refined, txy_smoothed)
             plt.show()
+
+    if flags['perform_multi_tracking'] == 0:
+        pass
+    elif flags['perform_multi_tracking'] >= 3:
+        txy, txy_refined = main_multi_tracking(flags, video_full_filename, start_time_ms,
+                                               n_points=flags['perform_multi_tracking'], actual_fps=actual_fps)
+        ####################################################
+        try:
+            txy_smoothed = perform_kalman_filter(txy_refined, kalman_param)
+        except AssertionError:
+            txy_smoothed = txy_refined
+            warnings.warn('txy_smoothed = txy_refined')
+        # Save to disk
+        with open(ot_output_filename, 'wb') as dump_file:
+            saving_list = [txy, txy_refined, txy_smoothed]
+            pickle.dump(saving_list, dump_file)
+        if not flags['perform_dsp']:
+            plot_time_domain(txy, txy_refined, txy_smoothed)
+            plt.show()
+        ####################################################
+    else:
+        raise ValueError("flags['perform_multi_tracking'] must be 0, 3 or more.")
 
     if flags['perform_dsp']:
         for dsp_input_filename in dsp_input_filenames:

@@ -119,7 +119,6 @@ def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
     cv2.namedWindow('Select 2 points and enter the scale between them', cv2.WINDOW_NORMAL)
     coordinate_store = MousePts('Select 2 points and enter the scale between them', roi)
     pts, _ = coordinate_store.getpt(2)
-    # cv2.destroyWindow('Select 2 points and enter the scale between them')
     cv2.destroyAllWindows()
     distance = None
     while distance is None:
@@ -143,7 +142,6 @@ def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
     bbox_template[0], bbox_template[1] = bbox_template[0] + bbox_roi[0], bbox_template[1] + bbox_roi[1]
     template = frame_slice(frame, bbox_template)
 
-    bbox = bbox_template
     while True:
         # Read a new frame
         ok, frame = video.read()
@@ -161,7 +159,6 @@ def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
             bbox_roi[1] = 0 if bbox_roi[1] < 0 else bbox_roi[1]
             bbox_roi[0] = video_width - bbox_roi[2] - 1 if bbox_roi[0] >= video_width - bbox_roi[2] else bbox_roi[0]
             bbox_roi[1] = video_height - bbox_roi[3] - 1 if bbox_roi[1] >= video_height - bbox_roi[3] else bbox_roi[1]
-            roi = frame_slice(frame, bbox_roi)
         # Save time (s) and point (distance_scale*px)
         t = time_scale * video.get(cv2.CAP_PROP_POS_MSEC) / 1000
         if t == 0:
