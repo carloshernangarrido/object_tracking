@@ -11,14 +11,14 @@ flags = {'webcam': False,
          'update_roi': True,
          'auto_play': False,
          'perform_object_tracking': False,
-         'perform_multi_tracking': 3,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi tracking
+         'perform_multi_tracking': 3,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
          'perform_dsp': False}
 
 video_path = 'C:/TRABAJO/CONICET/videos/'
 video_filename = 'vid_2022-09-13_12-54-44.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
 start_time_ms = 0
-ot_output_filename = 'txy.dat'
+ot_output_filename = 'txytheta.dat'
 
 # dsp_input_filenames = ['txy.dat']
 dsp_input_filenames = ['txy_dof1_m.dat',
@@ -46,20 +46,20 @@ if __name__ == '__main__':
     if flags['perform_multi_tracking'] == 0:
         pass
     elif flags['perform_multi_tracking'] >= 3:
-        txy, txy_refined = main_multi_tracking(flags, video_full_filename, start_time_ms,
-                                               n_points=flags['perform_multi_tracking'], actual_fps=actual_fps)
+        txytheta, txytheta_refined = main_multi_tracking(flags, video_full_filename, start_time_ms,
+                                                         n_points=flags['perform_multi_tracking'], actual_fps=actual_fps)
         ####################################################
         try:
-            txy_smoothed = perform_kalman_filter(txy_refined, kalman_param)
+            txytheta_smoothed = perform_kalman_filter(txytheta_refined, kalman_param)
         except AssertionError:
-            txy_smoothed = txy_refined
-            warnings.warn('txy_smoothed = txy_refined')
+            txytheta_smoothed = txytheta_refined
+            warnings.warn('txytheta_smoothed = txytheta_refined')
         # Save to disk
         with open(ot_output_filename, 'wb') as dump_file:
-            saving_list = [txy, txy_refined, txy_smoothed]
+            saving_list = [txytheta, txytheta_refined, txytheta_smoothed]
             pickle.dump(saving_list, dump_file)
         if not flags['perform_dsp']:
-            plot_time_domain(txy, txy_refined, txy_smoothed)
+            plot_time_domain(txytheta, txytheta_refined, txytheta_smoothed)
             plt.show()
         ####################################################
     else:

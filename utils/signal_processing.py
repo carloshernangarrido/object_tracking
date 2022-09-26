@@ -5,18 +5,27 @@ from matplotlib import pyplot as plt
 
 
 def plot_time_domain(txy, txy_refined, txy_smoothed=None, title='time domain positions'):
-    fig = plt.figure()
-    plt.title(title)
-    plt.xlabel('time (s)')
-    plt.ylabel('position')
-    plt.plot(txy[:, 0], txy[:, 1], '--', label='x int px')
-    plt.plot(txy[:, 0], txy[:, 2], '--', label='y int px')
-    plt.plot(txy_refined[:, 0], txy_refined[:, 1], label='x sub px')
-    plt.plot(txy_refined[:, 0], txy_refined[:, 2], label='y sub px')
+    fig, ax = plt.subplots(txy.shape[1] - 1, 1, sharex='all')
+    ax[0].set_title(title)
+    ax[-1].set_xlabel('time (s)')
+    ax[0].set_ylabel('x position')
+    ax[1].set_ylabel('y position')
+    if txy.shape[1] == 4:
+        ax[2].set_ylabel('angle (°)')
+    ax[0].plot(txy[:, 0], txy[:, 1], ':', label='x int px')
+    ax[1].plot(txy[:, 0], txy[:, 2], ':', label='y int px')
+    if txy.shape[1] == 4:
+        plt.plot(txy[:, 0], txy[:, 3], ':', label='angle int deg')
+    ax[0].plot(txy_refined[:, 0], txy_refined[:, 1], '--', label='x sub px')
+    ax[1].plot(txy_refined[:, 0], txy_refined[:, 2], '--', label='y sub px')
+    if txy.shape[1] == 4:
+        ax[2].plot(txy_refined[:, 0], txy_refined[:, 3], '--', label='angle sub deg')
     if txy_smoothed is not None:
-        plt.plot(txy_smoothed[:, 0], txy_smoothed[:, 1], label='smoothed x sub px')
-        plt.plot(txy_smoothed[:, 0], txy_smoothed[:, 2], label='smoothed y sub px')
-    plt.legend()
+        ax[0].plot(txy_smoothed[:, 0], txy_smoothed[:, 1], label='smoothed x sub px')
+        ax[1].plot(txy_smoothed[:, 0], txy_smoothed[:, 2], label='smoothed y sub px')
+        if txy.shape[1] == 4:
+            ax[2].plot(txy_smoothed[:, 0], txy_smoothed[:, 3], label='smoothed angle sub deg')
+    [ax[i].legend() for i in range(len(ax))]
     return fig
 
 
@@ -61,7 +70,7 @@ def perform_kalman_filter(txy_refined, kalman_param):
     assert (np.max(delta_ts) - np.min(delta_ts)) / delta_t < 1E-6, \
         f'Problem with sample time. {np.max(delta_ts)=}, {np.min(delta_ts)=}, {np.mean(delta_ts)=}'
 
-    for i in [1, 2]:
+    for i in [1, txy_smoothed.shape[1] - 1]:
         signal = txy_refined[:, i].copy()
         velocity_std = signal.std() * 2 * np.pi * kalman_param['freq_of_interest']
         txy_smoothed[:, i] = kf_constvel_smoother(signal, dt=delta_t,

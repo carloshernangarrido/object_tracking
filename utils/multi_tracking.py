@@ -58,6 +58,9 @@ class TrackPoint:
 
 
 def main_multi_tracking(flags, full_filename, start_time_ms, n_points, actual_fps=None):
+    txytheta = []
+    txytheta_refined = []
+
     # Read video
     if flags['webcam']:
         video = cv2.VideoCapture(0)  # for using CAM
@@ -134,11 +137,20 @@ def main_multi_tracking(flags, full_filename, start_time_ms, n_points, actual_fp
             tp.save_time_and_point(t=t, distance_scale=distance_scale)
 
         # Affine
-        src = np.array([[tp.txy_refined[0][1], tp.txy_refined[0][2]] for tp in tps], dtype=np.float)
-        dst = np.array([[tp.txy_refined[-1][1], tp.txy_refined[-1][2]] for tp in tps], dtype=np.float)
+        src = np.array([[tp.txy[0][1], tp.txy[0][2]] for tp in tps], dtype=np.float)
+        dst = np.array([[tp.txy[-1][1], tp.txy[-1][2]] for tp in tps], dtype=np.float)
         affine_transform = cv2.estimateAffine2D(src, dst)[0]
+        xy = (affine_transform[0, 2], affine_transform[1, 2])
         angle = (180/np.pi)*np.arctan2(affine_transform[1, 0], affine_transform[0, 0])
+        src_refined = np.array([[tp.txy_refined[0][1], tp.txy_refined[0][2]] for tp in tps], dtype=np.float)
+        dst_refined = np.array([[tp.txy_refined[-1][1], tp.txy_refined[-1][2]] for tp in tps], dtype=np.float)
+        affine_transform_refined = cv2.estimateAffine2D(src_refined, dst_refined)[0]
+        xy_refined = (affine_transform_refined[0, 2], affine_transform_refined[1, 2])
+        angle_refined = (180/np.pi)*np.arctan2(affine_transform_refined[1, 0], affine_transform_refined[0, 0])
+        txytheta.append([t, xy[0], xy[1], angle])
+        txytheta_refined.append([t, xy_refined[0], xy_refined[1], angle_refined])
 
+        # Visualization
         for i_tp, tp in enumerate(tps):
             # Draw bounding box for roi and matched template
             p1, p2 = bbox2rect(tp.bbox_roi)
@@ -147,8 +159,6 @@ def main_multi_tracking(flags, full_filename, start_time_ms, n_points, actual_fp
             cv2.rectangle(frame, p1, p2, (0, 255, 0), 1, 1)
             cv2.putText(frame, f'{i_tp}', (tp.bbox[0], tp.bbox[1]),
                         fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(255, 0, 0))
-
-        # Display current and total time
         cv2.putText(frame, f't = {np.round(t, 4)} s',
                     (10, 100), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=(0, 255, 0))
         cv2.putText(frame, f'of T = {np.round(total_time, 2)} s',
@@ -157,19 +167,18 @@ def main_multi_tracking(flags, full_filename, start_time_ms, n_points, actual_fp
                     (10, 200), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=(0, 255, 0))
         cv2.putText(frame, f'actual @ {np.round(actual_fps, 1)} fps',
                     (10, 250), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=(0, 255, 0))
-        for i, (p_src, p_dst) in enumerate(zip(src, dst)):
-            cv2.putText(frame, f'src {[round(_,1) for _ in p_src]}, dst {[round(_,1) for _ in p_dst]}',
+        for i, (p_src, p_dst) in enumerate(zip(src_refined.tolist(), dst_refined.tolist())):
+            cv2.putText(frame, f'src {[np.round(_,3) for _ in p_src]}, dst {[np.round(_,3) for _ in p_dst]}',
                         (10, 300 + 25*i), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=(0, 0, 255))
-        cv2.putText(frame, f'affine_transform {affine_transform[0].round(1)}',
+        cv2.putText(frame, f'delta_x {np.round(xy_refined[0], 4)}',
                     (10, 375), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=(0, 0, 255))
-        cv2.putText(frame, f'affine_transform {affine_transform[1].round(1)}',
+        cv2.putText(frame, f'delta_y {np.round(xy_refined[1], 4)}',
                     (10, 400), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=(0, 0, 255))
-        cv2.putText(frame, f'angle {angle}',
+        cv2.putText(frame, f'angle {np.round(angle_refined, 4)}',
                     (10, 450), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=1, color=(255, 0, 0))
         win_name = 'Frame matching. Press bar to forward, enter to play/pause, or Q to quit.'
         cv2.namedWindow(win_name, cv2.WINDOW_KEEPRATIO)
         cv2.imshow(win_name, frame)
-
         if flags['auto_play']:
             key = cv2.waitKey(1)
         else:
@@ -178,11 +187,10 @@ def main_multi_tracking(flags, full_filename, start_time_ms, n_points, actual_fp
             break
         elif key == ord('\r'):
             flags['auto_play'] = not flags['auto_play']
-
     video.release()
     cv2.destroyAllWindows()
 
-    txy_list = [tp.get_txy_ndarrays()[0] for tp in tps]
-    txy_refined_list = [tp.get_txy_ndarrays()[1] for tp in tps]
+    txytheta = np.array(txytheta)
+    txytheta_refined = np.array(txytheta_refined)
 
-    return txy_list[0], txy_refined_list[0]
+    return txytheta, txytheta_refined
