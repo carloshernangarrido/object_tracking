@@ -47,8 +47,8 @@ if __name__ == '__main__':
         pass
     elif flags['perform_multi_tracking'] >= 3:
         txytheta, txytheta_refined = main_multi_tracking(flags, video_full_filename, start_time_ms,
-                                                         n_points=flags['perform_multi_tracking'], actual_fps=actual_fps)
-        ####################################################
+                                                         n_points=flags['perform_multi_tracking'],
+                                                         actual_fps=actual_fps)
         try:
             txytheta_smoothed = perform_kalman_filter(txytheta_refined, kalman_param)
         except AssertionError:
@@ -61,7 +61,6 @@ if __name__ == '__main__':
         if not flags['perform_dsp']:
             plot_time_domain(txytheta, txytheta_refined, txytheta_smoothed)
             plt.show()
-        ####################################################
     else:
         raise ValueError("flags['perform_multi_tracking'] must be 0, 3 or more.")
 
