@@ -1,6 +1,5 @@
 from filterpy.kalman import KalmanFilter # based on the book Kalman_and_Bayesian_Filters_in_Python.pdf
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class InputParameters:
@@ -119,4 +118,3 @@ def kf_constvel_smoother(z_vector, dt, measurement_error_std, velocity_std):
     x_vector_rts = M.T.reshape((2, -1))
 
     return x_vector_rts[0, :].reshape((-1,))
-
