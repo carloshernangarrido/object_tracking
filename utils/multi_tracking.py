@@ -216,10 +216,6 @@ def main_multi_tracking(flags, full_filename, start_time_ms, finish_time_ms=None
                     (10, 300 + 25*i + 50), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(0, 0, 255))
         cv2.putText(frame, f'angle {np.round(angle_refined, 4)}',
                     (10, 300 + 25*i + 75), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 0, 0))
-        cv2.putText(frame, f'M={affine_transform_refined[0]}',
-                    (10, 300 + 25*i + 125), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 0, 0))
-        cv2.putText(frame, f'M={affine_transform_refined[1]}',
-                    (10, 300 + 25 * i + 150), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 0, 0))
         win_name = 'Frame matching. Press bar to forward, enter to play/pause, or Q to quit.'
         cv2.namedWindow(win_name, cv2.WINDOW_KEEPRATIO)
         cv2.imshow(win_name, frame)

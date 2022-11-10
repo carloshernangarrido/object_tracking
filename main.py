@@ -14,7 +14,7 @@ flags = {'webcam': False,
          'perform_multi_tracking': 4,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
          'perform_dsp': False}
 
-case = 2
+case = 5
 video_path = r"C:\TRABAJO\CONICET\videos\2022-11-08"
 video_filename = f'case_{case}.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
