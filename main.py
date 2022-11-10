@@ -1,30 +1,36 @@
 import os
 import pickle
 import warnings
-
 import matplotlib.pyplot as plt
 from utils.object_tracking import main_object_tracking
 from utils.multi_tracking import main_multi_tracking
-from utils.signal_processing import plot_time_domain, plot_frequency_domain, plot_emd, perform_kalman_filter
+from utils.signal_processing import plot_time_domain, plot_frequency_domain, plot_emd, \
+    perform_low_pass_filter, perform_kalman_filter
 
 flags = {'webcam': False,
          'update_roi': True,
          'auto_play': False,
          'perform_object_tracking': False,
-         'perform_multi_tracking': 3,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
+         'perform_multi_tracking': 4,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
          'perform_dsp': False}
 
-video_path = 'C:/TRABAJO/CONICET/videos/'
-video_filename = 'vid_2022-09-13_12-54-44.mp4'
+case = 4
+video_path = r"C:\TRABAJO\CONICET\videos\2022-11-08"
+video_filename = f'case_{case}.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
 start_time_ms = 0
-ot_output_filename = 'txytheta.dat'
+finish_time_ms = None
+ot_output_filename = f'case_{case}_rot.dat'
+ot_output_path = r'C:\Users\joses\Mi unidad\TRABAJO\46_cm_inerter\TRABAJO\experimental\ensayos\Campañas\1 - free ' \
+                 r'vibrations\object_tracking'
+ot_output_filename = os.path.join(ot_output_path, ot_output_filename)
 
 # dsp_input_filenames = ['txy.dat']
 dsp_input_filenames = ['txy_dof1_m.dat',
                        'txy_dof2_m.dat']
-kalman_param = {'freq_of_interest': 10,
-                'measurement_error_std': 0.00047*0.5}
+kalman_param = {'freq_of_interest': 5,
+                'measurement_error_std': 0.5,  # 0.00045*0.5,
+                'override_low_pass_f': 0}  # 0 to perform kalman filter
 dsp_param = {'emd_mask_freqs': [7, 2.5],
              'emd_max_imfs': 3}
 
@@ -33,8 +39,12 @@ if __name__ == '__main__':
 
     if flags['perform_object_tracking']:
         # object_tracking
-        txy, txy_refined = main_object_tracking(flags, video_full_filename, start_time_ms, actual_fps=actual_fps)
-        txy_smoothed = perform_kalman_filter(txy_refined, kalman_param)
+        txy, txy_refined = main_object_tracking(flags, video_full_filename, start_time_ms, finish_time_ms,
+                                                actual_fps=actual_fps)
+        if kalman_param['override_low_pass_f'] == 0:
+            txy_smoothed = perform_kalman_filter(txy_refined, kalman_param)
+        else:
+            txy_smoothed = perform_low_pass_filter(txy_refined, f_c=kalman_param['override_low_pass_f'])
         # Save to disk
         with open(ot_output_filename, 'wb') as dump_file:
             saving_list = [txy, txy_refined, txy_smoothed]
@@ -46,11 +56,14 @@ if __name__ == '__main__':
     if flags['perform_multi_tracking'] == 0:
         pass
     elif flags['perform_multi_tracking'] >= 3:
-        txytheta, txytheta_refined = main_multi_tracking(flags, video_full_filename, start_time_ms,
+        txytheta, txytheta_refined = main_multi_tracking(flags, video_full_filename, start_time_ms, finish_time_ms,
                                                          n_points=flags['perform_multi_tracking'],
                                                          actual_fps=actual_fps)
         try:
-            txytheta_smoothed = perform_kalman_filter(txytheta_refined, kalman_param)
+            if kalman_param['override_low_pass_f'] == 0:
+                txytheta_smoothed = perform_kalman_filter(txytheta_refined, kalman_param)
+            else:
+                txytheta_smoothed = perform_low_pass_filter(txytheta_refined, f_c=kalman_param['override_low_pass_f'])
         except AssertionError:
             txytheta_smoothed = txytheta_refined
             warnings.warn('txytheta_smoothed = txytheta_refined')

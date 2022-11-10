@@ -75,7 +75,7 @@ class MousePts:
         return self.point, self.img
 
 
-def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
+def main_object_tracking(flags, full_filename, start_time_ms, finish_time_ms=None, actual_fps=None):
     txy, txy_refined = [], []
 
     # Read video
@@ -83,12 +83,12 @@ def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
         video = cv2.VideoCapture(0)  # for using CAM
     else:
         video = cv2.VideoCapture(full_filename)
-        video.set(cv2.CAP_PROP_POS_MSEC, start_time_ms)
 
     video_fps = video.get(cv2.CAP_PROP_FPS)
     actual_fps = video_fps if actual_fps is None or flags['webcam'] else actual_fps
     time_scale = video_fps / actual_fps
     total_time = time_scale * video.get(cv2.CAP_PROP_FRAME_COUNT) / video_fps
+    video.set(cv2.CAP_PROP_POS_MSEC, start_time_ms / time_scale)
     # Exit if video not opened.
     if not video.isOpened():
         print("Could not open video")
@@ -104,15 +104,10 @@ def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
 
     # Select Region Of Interest
     bbox_roi = [0, 0, 0, 0]
+    cv2.namedWindow('Select ROI', cv2.WINDOW_KEEPRATIO)
     while bbox_roi[2] == 0 or bbox_roi[3] == 0:
-        cv2.namedWindow('Select ROI, or press any key to forward', cv2.WINDOW_KEEPRATIO)
         # [x, y, with, height]
-        bbox_roi = list(cv2.selectROI('Select ROI, or press any key to forward', frame, False))
-        # Read a new frame
-        ok, frame = video.read()
-        if not ok:
-            print('Cannot read video file')
-            sys.exit()
+        bbox_roi = list(cv2.selectROI('Select ROI', frame, False))
     roi = frame_slice(frame, bbox_roi)
 
     # Select scale
@@ -142,11 +137,27 @@ def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
     bbox_template[0], bbox_template[1] = bbox_template[0] + bbox_roi[0], bbox_template[1] + bbox_roi[1]
     template = frame_slice(frame, bbox_template)
 
+    time_offset = 0
     while True:
         # Read a new frame
         ok, frame = video.read()
-        if not ok:
-            break
+        t = time_scale * video.get(cv2.CAP_PROP_POS_FRAMES) / video_fps
+        t_ms = t * 1000
+        if finish_time_ms is None:
+            if not ok:
+                break
+        else:
+            if start_time_ms < finish_time_ms:
+                if finish_time_ms <= t_ms or not ok:
+                    break
+            else:  # ring playback
+                if not ok:
+                    time_offset = time_scale * video.get(cv2.CAP_PROP_POS_FRAMES) / video_fps
+                    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    ok, frame = video.read()
+                    t = time_scale * video.get(cv2.CAP_PROP_POS_FRAMES) / video_fps
+                if finish_time_ms <= t_ms < start_time_ms:
+                    break
 
         # Template matching
         roi = frame_slice(frame, bbox_roi)
@@ -159,12 +170,10 @@ def main_object_tracking(flags, full_filename, start_time_ms, actual_fps=None):
             bbox_roi[1] = 0 if bbox_roi[1] < 0 else bbox_roi[1]
             bbox_roi[0] = video_width - bbox_roi[2] - 1 if bbox_roi[0] >= video_width - bbox_roi[2] else bbox_roi[0]
             bbox_roi[1] = video_height - bbox_roi[3] - 1 if bbox_roi[1] >= video_height - bbox_roi[3] else bbox_roi[1]
+
         # Save time (s) and point (distance_scale*px)
-        t = time_scale * video.get(cv2.CAP_PROP_POS_MSEC) / 1000
-        if t == 0:
-            break
-        txy.append([t, distance_scale*bbox[0], distance_scale*bbox[1]])
-        txy_refined.append([t, distance_scale*bbox_refined[0], distance_scale*bbox_refined[1]])
+        txy.append([t + time_offset, distance_scale*bbox[0], distance_scale*bbox[1]])
+        txy_refined.append([t + time_offset, distance_scale*bbox_refined[0], distance_scale*bbox_refined[1]])
 
         # Draw bounding box for roi
         p1, p2 = bbox2rect(bbox_roi)

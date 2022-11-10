@@ -2,6 +2,7 @@ import numpy as np
 from utils.kalman_filter import kf_constvel_smoother
 import emd
 from matplotlib import pyplot as plt
+from scipy.signal import butter, lfilter
 
 
 def plot_time_domain(txy, txy_refined, txy_smoothed=None, title='time domain positions'):
@@ -59,6 +60,7 @@ def plot_frequency_domain(txy, txy_refined, txy_smoothed, title='frequency domai
     plt.xlabel('frequency (Hz)')
     plt.ylabel('position (px / rad)')
     plt.xlim((0, 0.5/delta_t))
+    plt.grid()
     plt.legend()
     return fig
 
@@ -76,6 +78,21 @@ def perform_kalman_filter(txy_refined, kalman_param):
         txy_smoothed[:, i] = kf_constvel_smoother(signal, dt=delta_t,
                                                   measurement_error_std=kalman_param['measurement_error_std'],
                                                   velocity_std=velocity_std)
+    return txy_smoothed
+
+
+def perform_low_pass_filter(txy_refined, f_c):
+    txy_smoothed = txy_refined.copy()
+    delta_ts = np.diff(txy_smoothed[:, 0])
+    delta_t = np.round(delta_ts.mean(), 6)
+    assert (np.max(delta_ts) - np.min(delta_ts)) / delta_t < 1E-6, \
+        f'Problem with sample time. {np.max(delta_ts)=}, {np.min(delta_ts)=}, {np.mean(delta_ts)=}'
+
+    for i in [1, txy_smoothed.shape[1] - 1]:
+        signal = txy_refined[:, i].copy()
+        ba = butter(N=1, Wn=f_c, fs=1 / delta_t, btype='low', analog=False)
+        b, a = ba[0], ba[1]
+        txy_smoothed[:, i] = lfilter(b, a, signal - signal[0]) + signal[0]
     return txy_smoothed
 
 
