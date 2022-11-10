@@ -170,6 +170,8 @@ def main_multi_tracking(flags, full_filename, start_time_ms, finish_time_ms=None
         txytheta_refined.append([t + time_offset, xy_refined[0], xy_refined[1], angle_refined])
 
         # Visualization
+        dst_refined /= distance_scale
+        src_refined /= distance_scale
         # center of mass
         for dst_ in dst_refined:
             cv2.circle(frame, [int(_) for _ in dst_], radius=3, color=(0, 0, 255))
@@ -181,7 +183,8 @@ def main_multi_tracking(flags, full_filename, start_time_ms, finish_time_ms=None
         for src_ in src_refined:
             cv2.circle(frame, [int(_) for _ in src_], radius=3, color=(0, 255, 255))
         center_of_mass_src = np.mean(src_refined, axis=0)
-        center_of_mass_src_delta_xy = [int(_) for _ in center_of_mass_src + np.array(txytheta_refined[-1][1:3])]
+        center_of_mass_src_delta_xy = [int(_) for _ in center_of_mass_src +
+                                       np.array(txytheta_refined[-1][1:3])/distance_scale]
         cv2.circle(frame, center_of_mass_src_delta_xy, radius=5, color=(0, 255, 0))
         cv2.putText(frame, 'sMC+D', org=center_of_mass_src_delta_xy,
                     fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(0, 255, 0))
@@ -213,8 +216,10 @@ def main_multi_tracking(flags, full_filename, start_time_ms, finish_time_ms=None
                     (10, 300 + 25*i + 50), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(0, 0, 255))
         cv2.putText(frame, f'angle {np.round(angle_refined, 4)}',
                     (10, 300 + 25*i + 75), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 0, 0))
-        cv2.putText(frame, f'M={affine_transform_refined}',
+        cv2.putText(frame, f'M={affine_transform_refined[0]}',
                     (10, 300 + 25*i + 125), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 0, 0))
+        cv2.putText(frame, f'M={affine_transform_refined[1]}',
+                    (10, 300 + 25 * i + 150), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 0, 0))
         win_name = 'Frame matching. Press bar to forward, enter to play/pause, or Q to quit.'
         cv2.namedWindow(win_name, cv2.WINDOW_KEEPRATIO)
         cv2.imshow(win_name, frame)

@@ -14,7 +14,7 @@ flags = {'webcam': False,
          'perform_multi_tracking': 4,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
          'perform_dsp': False}
 
-case = 4
+case = 2
 video_path = r"C:\TRABAJO\CONICET\videos\2022-11-08"
 video_filename = f'case_{case}.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
@@ -28,8 +28,8 @@ ot_output_filename = os.path.join(ot_output_path, ot_output_filename)
 # dsp_input_filenames = ['txy.dat']
 dsp_input_filenames = ['txy_dof1_m.dat',
                        'txy_dof2_m.dat']
-kalman_param = {'freq_of_interest': 5,
-                'measurement_error_std': 0.5,  # 0.00045*0.5,
+kalman_param = {'freq_of_interest': 10,
+                'measurement_error_std': 0.00045*0.5,  # 0.5,
                 'override_low_pass_f': 0}  # 0 to perform kalman filter
 dsp_param = {'emd_mask_freqs': [7, 2.5],
              'emd_max_imfs': 3}
