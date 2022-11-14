@@ -14,12 +14,12 @@ flags = {'webcam': False,
          'perform_multi_tracking': 4,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
          'perform_dsp': False}
 
-case = 5
+case = 6
 video_path = r"C:\TRABAJO\CONICET\videos\2022-11-08"
 video_filename = f'case_{case}.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
 start_time_ms = 0
-finish_time_ms = None
+finish_time_ms = 28000
 ot_output_filename = f'case_{case}_rot.dat'
 ot_output_path = r'C:\Users\joses\Mi unidad\TRABAJO\46_cm_inerter\TRABAJO\experimental\ensayos\Campañas\1 - free ' \
                  r'vibrations\object_tracking'
