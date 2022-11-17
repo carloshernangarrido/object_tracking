@@ -10,18 +10,18 @@ from utils.signal_processing import plot_time_domain, plot_frequency_domain, plo
 flags = {'webcam': False,
          'update_roi': True,
          'auto_play': False,
-         'perform_object_tracking': False,
-         'perform_multi_tracking': 4,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
+         'perform_object_tracking': True,
+         'perform_multi_tracking': 0,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
          'perform_dsp': False}
 
-case = 6
-video_path = r"C:\TRABAJO\CONICET\videos\2022-11-08"
+case = 14
+video_path = r"C:\TRABAJO\CONICET\videos\2022-11-16"
 video_filename = f'case_{case}.mp4'
 actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
 start_time_ms = 0
 finish_time_ms = 28000
-ot_output_filename = f'case_{case}_rot.dat'
-ot_output_path = r'C:\Users\joses\Mi unidad\TRABAJO\46_cm_inerter\TRABAJO\experimental\ensayos\Campañas\1 - free ' \
+ot_output_filename = f'case_{case}_dof2_m.dat'
+ot_output_path = r'C:\Users\joses\Mi unidad\TRABAJO\46_cm_inerter\TRABAJO\experimental\ensayos\Campañas\2 - free ' \
                  r'vibrations\object_tracking'
 ot_output_filename = os.path.join(ot_output_path, ot_output_filename)
 

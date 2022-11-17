@@ -150,7 +150,7 @@ def main_multi_tracking(flags, full_filename, start_time_ms, finish_time_ms=None
         if src_centroid is None:
             src_centroid = np.mean(src, axis=0)
         dst = np.array([[tp.txy[-1][1], tp.txy[-1][2]] for tp in tps], dtype=np.float)
-        affine_transform = cv2.estimateAffinePartial2D(src - src_centroid, dst - src_centroid)
+        affine_transform = cv2.estimateAffinePartial2D(src - src_centroid, dst - src_centroid, confidence=0.9)
         if np.sum(affine_transform[1]) != n_points:
             raise AssertionError(f"Point/s {[i for i, item in enumerate(affine_transform[1]) if item == 0]} "
                                  f"have poor quality. at time {t}")
@@ -163,7 +163,7 @@ def main_multi_tracking(flags, full_filename, start_time_ms, finish_time_ms=None
             src_refined_centroid = np.mean(src_refined, axis=0)
         dst_refined = np.array([[tp.txy_refined[-1][1], tp.txy_refined[-1][2]] for tp in tps], dtype=np.float)
         affine_transform_refined = cv2.estimateAffinePartial2D(src_refined - src_refined_centroid,
-                                                               dst_refined - src_refined_centroid)
+                                                               dst_refined - src_refined_centroid, confidence=0.9)
         if np.sum(affine_transform_refined[1]) != n_points:
             raise AssertionError(f"Point/s {[i for i, item in enumerate(affine_transform_refined[1]) if item == 0]} "
                                  f"have poor quality. at time {t}")
