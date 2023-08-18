@@ -198,9 +198,9 @@ def main_multi_tracking(flags, full_filename, start_time_ms, finish_time_ms=None
         for i_tp, tp in enumerate(tps):
             # Draw bounding box for roi and matched template
             p1, p2 = bbox2rect(tp.bbox_roi)
-            cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
+            cv2.rectangle(frame, p1, p2, (255, 0, 0), 3, 1)
             p1, p2 = bbox2rect(tp.bbox)
-            cv2.rectangle(frame, p1, p2, (0, 255, 0), 1, 1)
+            cv2.rectangle(frame, p1, p2, (0, 255, 0), 2, 1)
             cv2.putText(frame, f'{i_tp}', (tp.bbox[0], tp.bbox[1]),
                         fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 0, 0))
         cv2.putText(frame, f't = {np.round(t + time_offset, 4)} s',
