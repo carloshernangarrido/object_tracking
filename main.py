@@ -1,4 +1,3 @@
-import os
 import pickle
 import warnings
 import matplotlib.pyplot as plt
@@ -7,33 +6,8 @@ from utils.multi_tracking import main_multi_tracking
 from utils.signal_processing import plot_time_domain, plot_frequency_domain, plot_emd, \
     perform_low_pass_filter, perform_kalman_filter
 
-flags = {'webcam': False,
-         'update_roi': True,
-         'auto_play': False,
-         'perform_object_tracking': False,
-         'perform_multi_tracking': 4,  # 0 to avoid multi_tracking, 3 or more to specify and perform multi-tracking
-         'perform_dsp': False}
+from inputdata import *
 
-case = 7
-video_path = r"C:\TRABAJO\CONICET\videos\2022-11-16"
-video_filename = f'case_{case}.mp4'
-actual_fps = 500  # Ignored if flags['webcam'] == True or if actual_fps is None
-start_time_ms = 100
-finish_time_ms = 28100
-conf_th = 0.9
-ot_output_filename = f'case_{case}_rot.dat'
-ot_output_path = r'C:\Users\joses\Mi unidad\TRABAJO\46_cm_inerter\TRABAJO\experimental\ensayos\Campañas\2 - free ' \
-                 r'vibrations\object_tracking'
-ot_output_filename = os.path.join(ot_output_path, ot_output_filename)
-
-# dsp_input_filenames = ['txy.dat']
-dsp_input_filenames = ['txy_dof1_m.dat',
-                       'txy_dof2_m.dat']
-kalman_param = {'freq_of_interest': 10,
-                'measurement_error_std': 0.00045*0.5,  # 0.5,
-                'override_low_pass_f': 0}  # 0 to perform kalman filter
-dsp_param = {'emd_mask_freqs': [7, 2.5],
-             'emd_max_imfs': 3}
 
 if __name__ == '__main__':
     video_full_filename = os.path.join(video_path, video_filename)
